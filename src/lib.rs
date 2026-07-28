@@ -917,7 +917,6 @@ impl ExPushable<vec::Vec<i32>> for StreamOutlet {
     }
 }
 
-#[cfg(not(windows))] // TODO: once we upgrade to liblsl 1.14, we can drop this platform restriction
 impl ExPushable<vec::Vec<i64>> for StreamOutlet {
     fn push_sample_ex(&self, data: &vec::Vec<i64>, timestamp: f64, pushthrough: bool) -> Result<()> {
         self.safe_push_numeric(lsl_push_sample_ltp, data, timestamp, pushthrough)
@@ -1614,7 +1613,6 @@ impl Pullable<f64> for StreamInlet {
     }
 }
 
-#[cfg(not(windows))] // TODO: once we upgrade to liblsl 1.14, we can drop this platform restriction
 impl Pullable<i64> for StreamInlet {
     fn pull_sample(&self, timeout: f64) -> Result<(vec::Vec<i64>, f64)> {
         self.safe_pull_numeric(lsl_pull_sample_l, timeout)

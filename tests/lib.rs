@@ -1,4 +1,18 @@
 use lsl;
+use lsl::{ExPushable, Pullable};
+
+// Compile-time assertion: signed 64-bit transport must exist on every target.
+fn assert_i64_transport_traits()
+where
+    lsl::StreamOutlet: ExPushable<Vec<i64>>,
+    lsl::StreamInlet: Pullable<i64>,
+{
+}
+
+#[test]
+fn i64_transport_traits_are_available() {
+    assert_i64_transport_traits();
+}
 
 #[test]
 fn clock_is_working() {
@@ -32,4 +46,30 @@ fn streaminfo_xml() {
     let xml = info.to_xml().unwrap();
     assert!(xml.contains("<name>MyStream</name>"));
     assert!(xml.contains("<label>MyChannel</label>"));
+}
+
+#[test]
+fn i64_sample_roundtrip() {
+    let info = lsl::StreamInfo::new(
+        "RustInt64RoundTrip",
+        "Test",
+        3,
+        lsl::IRREGULAR_RATE,
+        lsl::ChannelFormat::Int64,
+        "liblsl-rust-int64-roundtrip",
+    )
+    .unwrap();
+    let outlet = lsl::StreamOutlet::new(&info, 0, 16).unwrap();
+    let inlet = lsl::StreamInlet::new(&info, 16, 1, false).unwrap();
+    inlet.open_stream(5.0).unwrap();
+    assert!(outlet.wait_for_consumers(5.0));
+
+    let expected = vec![i64::MIN, 0, i64::MAX];
+    outlet
+        .push_sample_ex(&expected, lsl::local_clock(), true)
+        .unwrap();
+    let (actual, timestamp): (Vec<i64>, _) = inlet.pull_sample(5.0).unwrap();
+
+    assert_eq!(actual, expected);
+    assert!(timestamp > 0.0);
 }
