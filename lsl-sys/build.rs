@@ -47,9 +47,17 @@ fn build_liblsl() {
     if target.contains("linux") {
         println!("cargo:rustc-link-lib=dylib=stdc++");
     } else if target.contains("windows") {
-        // TODO: this is a shortcoming in the current cmake file, which should be       
-        //       linking in this library (once this is fixed, we should remove this)
+        // Static CMake link-interface dependencies are not propagated to rustc.
+        // MSVC embeds its C++ runtime DEFAULTLIB records; GNU needs stdc++ named.
+        if target.contains("gnu") {
+            println!("cargo:rustc-link-lib=dylib=stdc++");
+        }
+        // Mirrors liblsl's Windows CMake target; bcrypt remains an lsl-sys need.
         println!("cargo:rustc-link-lib=dylib=bcrypt");
+        println!("cargo:rustc-link-lib=dylib=iphlpapi");
+        println!("cargo:rustc-link-lib=dylib=winmm");
+        println!("cargo:rustc-link-lib=dylib=mswsock");
+        println!("cargo:rustc-link-lib=dylib=ws2_32");
     } else {
         println!("cargo:rustc-link-lib=dylib=c++");
     }

@@ -23,4 +23,5 @@ jobs:
         with:
           submodules: recursive
       - uses: dtolnay/rust-toolchain@stable
-      - run: cargo test --all
+      # liblsl owns process-global state; parallel integration teardown can race.
+      - run: cargo test --all -- --test-threads=1
